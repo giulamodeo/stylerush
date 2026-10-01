@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ultima Revisione</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --desk: #ece4d4; --dot: #d6cbb5; --paper: #fffdf7; --paper2: #f8f3e8;
+    --ink: #2b2a33; --muted: #7a7266; --line: #ddd3c0;
+    --pen: #2f4fd0; --red: #d8412f; --green: #2e9a52; --amber: #e08a1e;
+    --hl: #ffe066; --postit: #fff2a8; --postit2: #ffd6e0; --postit3: #cdeffd;
+    --tape: rgba(255, 236, 170, .75); --coffee: #8a5a3b; --gold: #c99400;
+    --shadow: 0 1px 0 rgba(60,40,10,.06), 0 10px 22px -8px rgba(60,40,10,.25);
+    --hand: "Caveat", "Comic Sans MS", cursive;
+    --note: "Kalam", "Comic Sans MS", cursive;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --desk: #1f1c18; --dot: #34302a; --paper: #2c2924; --paper2: #26231f;
+      --ink: #f1ebdf; --muted: #a89f90; --line: #443f37;
+      --pen: #7d97ff; --red: #ff7a68; --green: #5fd086; --amber: #f3a64a;
+      --hl: #7a6420; --postit: #5a5228; --postit2: #5a3340; --postit3: #24485a;
+      --tape: rgba(200, 180, 120, .35); --coffee: #b07a52; --gold: #f5c542;
+      --shadow: 0 10px 24px -8px rgba(0,0,0,.6);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background-color: var(--desk);
+    background-image: radial-gradient(var(--dot) 1.2px, transparent 1.3px);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh; display: flex; justify-content: center; padding: 16px; overflow-x: hidden;
+  }
+  main { width: 100%; max-width: 820px; }
+  svg.avatar-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+  /* ---------- carta, nastro, evidenziatore ---------- */
+  .paper { background: var(--paper); border-radius: 4px; box-shadow: var(--shadow); position: relative; }
+  .tape::before {
+    content: ""; position: absolute; top: -11px; left: 50%; width: 96px; height: 24px;
+    background: var(--tape); transform: translateX(-50%) rotate(-2.5deg);
+    box-shadow: 0 1px 2px rgba(0,0,0,.08); border-left: 2px dashed rgba(255,255,255,.35); border-right: 2px dashed rgba(255,255,255,.35);
+  }
+  .tape.r::before { left: auto; right: 18px; transform: rotate(4deg); width: 70px; }
+  .hl { background: linear-gradient(transparent 55%, var(--hl) 55%, var(--hl) 92%, transparent 92%); padding: 0 3px; }
+  .hand { font-family: var(--hand); }
+
+  header { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; }
+  h1 { margin: 0; font-family: var(--hand); font-weight: 700; font-size: clamp(2.2rem, 7vw, 3.2rem); line-height: .9; letter-spacing: .5px; }
+  h1 .r { color: var(--red); display: inline-block; transform: rotate(-2deg); }
+  .sub { font-family: var(--note); color: var(--muted); margin: 6px 0 0; font-size: .95rem; }
+  .icon-btn { margin-left: auto; background: var(--paper); border: 2px solid var(--ink); border-radius: 10px 14px 9px 13px; padding: 6px 10px; font-size: 1.1rem; cursor: pointer; color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+
+  /* ---------- statistiche come cartellini ---------- */
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
+  .stat { padding: 9px 8px 8px; text-align: center; }
+  .stat:nth-child(1) { transform: rotate(-.8deg); } .stat:nth-child(2) { transform: rotate(.6deg); }
+  .stat:nth-child(3) { transform: rotate(-.4deg); } .stat:nth-child(4) { transform: rotate(.9deg); } .stat:nth-child(5) { transform: rotate(-.6deg); }
+  .stat .lbl { font-family: var(--hand); font-size: 1.05rem; color: var(--muted); line-height: 1; }
+  .stat .val { font-size: 1.15rem; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat.cash .val { color: var(--green); }
+  .stat.bump { animation: bump .45s ease; }
+  @keyframes bump { 40% { scale: 1.12; } }
+  .rep-bar { height: 7px; border: 1.5px solid var(--ink); border-radius: 6px 3px 5px 4px; margin-top: 5px; overflow: hidden; }
+  .rep-bar i { display: block; height: 100%; background: var(--gold); width: 0; transition: width .6s ease; }
+
+  /* ---------- scheda cliente ---------- */
+  .brief { padding: 18px; margin-bottom: 16px; transition: transform .6s, opacity .6s; }
+  .brief.crumple { animation: crumple .9s ease forwards; }
+  @keyframes crumple {
+    15% { transform: translateX(-8px) rotate(-1deg); } 30% { transform: translateX(8px) rotate(1deg); }
+    60% { transform: scale(.86) rotate(-4deg); filter: grayscale(1); opacity: .8; }
+    100% { transform: scale(.93) rotate(-2deg); filter: grayscale(1) sepia(.3); opacity: .6; }
+  }
+  .brief-grid { display: grid; grid-template-columns: 132px 1fr; gap: 18px; align-items: start; }
+  .portrait { text-align: center; }
+  .frame { width: 132px; height: 132px; background: var(--paper2); padding: 6px; border: 2px solid var(--ink); border-radius: 6px 10px 5px 9px; transform: rotate(-2deg); }
+  .frame.change { animation: wob .45s ease; }
+  @keyframes wob { 30% { transform: rotate(3deg) scale(1.06); } 60% { transform: rotate(-4deg); } }
+  .mood-lbl { font-family: var(--hand); font-size: 1.45rem; margin-top: 6px; line-height: 1; }
+  .client { font-family: var(--hand); font-weight: 700; font-size: 1.9rem; line-height: 1; }
+  .job { font-family: var(--note); color: var(--muted); font-size: .95rem; margin-top: 2px; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .tag { font-size: .78rem; padding: 3px 9px; border: 1.5px solid var(--ink); border-radius: 12px 8px 14px 9px; background: var(--paper); white-space: nowrap; }
+  .tag.rate { background: var(--postit3); font-weight: 700; }
+  .tag.dl { background: var(--postit); font-weight: 700; }
+  .tag.dl.late { background: var(--red); color: #fff; border-color: var(--red); }
+  .tag.prem { background: var(--hl); font-weight: 700; }
+
+  .meter { margin-top: 14px; }
+  .meter .top { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--hand); font-size: 1.25rem; }
+  .meter .top b { font-family: system-ui, sans-serif; font-size: 1rem; font-variant-numeric: tabular-nums; }
+  .bar { height: 16px; border: 2px solid var(--ink); border-radius: 9px 5px 8px 6px; overflow: hidden; background: var(--paper2); }
+  .bar i { display: block; height: 100%; width: 0; transition: width .4s ease;
+    background: repeating-linear-gradient(-45deg, var(--pen) 0 6px, color-mix(in srgb, var(--pen) 75%, white) 6px 9px); }
+  .riskline { font-family: var(--note); font-size: .88rem; color: var(--muted); margin-top: 10px; min-height: 1.3em; }
+  .riskline b { color: var(--ink); }
+  .fee-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .fee { font-family: var(--note); font-size: .9rem; color: var(--muted); padding: 8px 12px; border: 1.5px dashed var(--line); border-radius: 6px; }
+  .fee b { display: block; font-family: system-ui, sans-serif; font-size: 1.2rem; font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .fee.win b { color: var(--green); }
+  .fee.lose b { color: var(--red); }
+  .fee small { display: block; font-size: .74rem; }
+  .perks { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .perk { font-family: var(--note); font-size: .78rem; padding: 2px 9px; background: var(--postit); transform: rotate(-1deg); box-shadow: 1px 2px 3px rgba(0,0,0,.12); }
+
+  /* ---------- quaderno chat ---------- */
+  .log {
+    height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 12px 12px 12px 46px;
+    background-color: var(--paper);
+    background-image: linear-gradient(90deg, transparent 34px, color-mix(in srgb, var(--red) 45%, transparent) 34px, color-mix(in srgb, var(--red) 45%, transparent) 36px, transparent 36px),
+                      repeating-linear-gradient(transparent 0 27px, color-mix(in srgb, var(--pen) 18%, transparent) 27px 28px);
+    background-attachment: local;
+  }
+  .bubble { max-width: 85%; padding: 4px 11px; font-family: var(--note); font-size: .95rem; line-height: 1.35; animation: pop .25s ease both; border-radius: 3px; }
+  .bubble.client { align-self: flex-start; background: var(--postit2); transform: rotate(-.6deg); box-shadow: 1px 2px 3px rgba(0,0,0,.1); }
+  .bubble.client.m2 { background: color-mix(in srgb, var(--amber) 35%, var(--paper)); }
+  .bubble.client.m3 { background: color-mix(in srgb, var(--red) 30%, var(--paper)); font-weight: 700; }
+  .bubble.me { align-self: flex-end; background: var(--postit3); transform: rotate(.5deg); box-shadow: 1px 2px 3px rgba(0,0,0,.1); }
+  .bubble.sys { align-self: center; color: var(--muted); font-size: .85rem; font-style: italic; }
+  .bubble.fail { align-self: stretch; max-width: 100%; text-align: center; color: var(--red); font-weight: 700; font-size: 1.05rem; border: 2px solid var(--red); transform: rotate(-1deg); }
+  .bubble .gain { font-weight: 700; }
+  @keyframes pop { from { translate: 0 6px; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+
+  /* ---------- pulsanti a pennarello ---------- */
+  .actions { display: grid; gap: 10px; margin-top: 14px; }
+  .actions.revs { grid-template-columns: repeat(3, 1fr); }
+  .actions.other { grid-template-columns: 2fr 1fr 1fr; margin-top: 10px; }
+  button { font: inherit; cursor: pointer; color: var(--ink); }
+  .btn {
+    font-family: var(--hand); font-weight: 700; font-size: 1.45rem; line-height: 1; padding: 10px 8px 8px;
+    border: 2.5px solid var(--ink); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    box-shadow: 3px 3px 0 var(--ink); transition: transform .08s, box-shadow .08s, opacity .15s; color: #fff;
+  }
+  .btn small { display: block; font-family: system-ui, sans-serif; font-weight: 500; font-size: .7rem; margin-top: 4px; opacity: .9; }
+  .btn small .rk { font-weight: 800; }
+  .btn:not(:disabled):hover { transform: translate(-1px, -1px) rotate(-.5deg); box-shadow: 4px 4px 0 var(--ink); }
+  .btn:not(:disabled):active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+  .b-rit { background: #6c8cff; } .b-rev { background: var(--pen); } .b-ref { background: #e8572f; }
+  .b-ship { background: var(--green); font-size: 1.7rem; }
+  .b-cof { background: var(--coffee); font-size: 1.25rem; }
+  .b-adv { background: var(--gold); color: #2b2100; font-size: 1.25rem; }
+  .b-main { background: var(--pen); width: 100%; margin-top: 14px; font-size: 1.7rem; }
+  .keys { text-align: center; font-family: var(--note); color: var(--muted); font-size: .8rem; margin-top: 12px; }
+
+  /* ---------- finestre ---------- */
+  .overlay { position: fixed; inset: 0; background: rgba(30,24,16,.55); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+  .overlay.show { display: flex; }
+  .modal { padding: 26px 24px 22px; max-width: 480px; width: 100%; text-align: center; animation: drop .3s ease both; max-height: calc(100vh - 32px); overflow-y: auto; transform: rotate(-.6deg); }
+  .modal.wide { max-width: 720px; }
+  @keyframes drop { from { translate: 0 -14px; opacity: 0; rotate: -3deg; } to { translate: 0 0; opacity: 1; rotate: 0deg; } }
+  .modal h2 { margin: 0 0 4px; font-family: var(--hand); font-size: 2.3rem; line-height: 1; }
+  .modal p { font-family: var(--note); color: var(--muted); line-height: 1.45; }
+  .modal .big { font-size: 2.5rem; font-weight: 800; margin: 6px 0; font-variant-numeric: tabular-nums; }
+  .summary { text-align: left; margin: 12px 0; font-size: .88rem; }
+  .summary div { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1.5px dashed var(--line); }
+  .summary .tot { font-weight: 800; }
+  .stamp { display: inline-block; font-family: var(--hand); font-weight: 700; font-size: 1.6rem; padding: 2px 14px; border: 3px solid currentColor; border-radius: 8px; transform: rotate(-8deg); margin: 4px 0 8px; opacity: .9; }
+
+  .offers { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 16px; }
+  .offer { text-align: left; padding: 14px; border: none; display: flex; flex-direction: column; gap: 4px; background: var(--postit); box-shadow: 2px 5px 10px rgba(0,0,0,.18); transition: transform .12s; font-size: .88rem; }
+  .offer:nth-child(2) { background: var(--postit2); transform: rotate(1.5deg); } .offer:nth-child(1) { transform: rotate(-1.5deg); } .offer:nth-child(3) { background: var(--postit3); transform: rotate(-.5deg); }
+  .offer:hover { transform: rotate(0) scale(1.04); }
+  .offer .oa { width: 86px; height: 86px; align-self: center; margin-bottom: 4px; }
+  .offer .on { font-family: var(--hand); font-weight: 700; font-size: 1.45rem; line-height: 1; }
+  .offer .oj { font-family: var(--note); color: var(--muted); font-size: .85rem; }
+  .offer .orow { display: flex; justify-content: space-between; font-size: .82rem; }
+  .offer .key { font-family: var(--note); margin-top: 4px; font-size: .75rem; color: var(--muted); }
+  .pat { letter-spacing: 1px; }
+
+  .shop { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 14px; text-align: left; }
+  .item { border: 2px solid var(--ink); border-radius: 6px 12px 5px 10px; padding: 12px; background: var(--paper2); display: flex; flex-direction: column; gap: 6px; position: relative; }
+  .item .ii { font-size: 1.8rem; }
+  .item .in { font-family: var(--hand); font-weight: 700; font-size: 1.4rem; line-height: 1; }
+  .item .id { font-family: var(--note); font-size: .85rem; color: var(--muted); flex: 1; }
+  .item .price { position: absolute; top: 10px; right: 10px; background: var(--hl); color: #2b2100; font-weight: 800; padding: 2px 8px; transform: rotate(4deg); font-size: .85rem; }
+  .item .btn { font-size: 1.15rem; padding: 6px; background: var(--green); }
+  .item.owned { opacity: .55; }
+  .owned-list { font-family: var(--note); font-size: .85rem; color: var(--muted); margin-top: 10px; }
+
+  .event-ico { font-size: 3.2rem; margin: 4px 0; }
+  .title-faces { display: flex; justify-content: center; gap: 10px; margin: 6px 0 10px; }
+  .title-faces div { width: 84px; height: 84px; }
+  .title-faces div:nth-child(1) { transform: rotate(-6deg); } .title-faces div:nth-child(3) { transform: rotate(6deg); }
+  .title-screen ul { text-align: left; font-family: var(--note); color: var(--muted); font-size: .92rem; line-height: 1.5; padding-left: 20px; margin: 8px 0; }
+  .title-screen li b { color: var(--ink); }
+
+  .fx { position: fixed; pointer-events: none; z-index: 20; font-size: 1.4rem; }
+  .confetti { position: fixed; top: -12px; width: 10px; height: 14px; z-index: 30; pointer-events: none; }
+  .float-num { position: fixed; z-index: 21; pointer-events: none; font-family: var(--hand); font-weight: 700; font-size: 1.8rem; animation: floatup 1s ease forwards; }
+  @keyframes floatup { to { translate: 0 -40px; opacity: 0; } }
+  .toast { position: fixed; left: 50%; bottom: 20px; translate: -50% 0; background: var(--postit); color: var(--ink); font-family: var(--note); padding: 8px 16px; box-shadow: var(--shadow); z-index: 40; animation: pop .3s ease both; rotate: -1deg; }
+
+  @media (max-width: 600px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stats .stat:last-child { grid-column: span 2; }
+    .brief-grid { grid-template-columns: 96px 1fr; gap: 12px; }
+    .frame { width: 96px; height: 96px; padding: 4px; }
+    .client { font-size: 1.5rem; }
+    .fee-row { grid-template-columns: 1fr; gap: 6px; }
+    .actions.other { grid-template-columns: 1fr 1fr; }
+    .actions.other .b-ship { grid-column: span 2; }
+    .btn { font-size: 1.2rem; }
+    .btn small { font-size: .64rem; }
+    .keys { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<!-- filtri condivisi: tratto a matita tremolante e tratteggio -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="wobble" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/>
+    </filter>
+    <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(40)">
+      <line x1="0" y1="0" x2="0" y2="5" stroke="#2b2a33" stroke-width="1.1" stroke-opacity=".35"/>
+    </pattern>
+  </defs>
+</svg>
+
+<main>
+  <header>
+    <div>
+      <h1>Ultima <span class="r">Revisione</span></h1>
+      <p class="sub">La bozza è consegnata. Ancora un ritocco… o incassi adesso?</p>
+    </div>
+    <button class="icon-btn" id="soundBtn" title="Suoni" aria-label="Attiva suoni">🔇</button>
+  </header>
+
+  <section class="stats">
+    <div class="stat paper"><div class="lbl">anno · progetto</div><div class="val" id="round">1 · 1/5</div></div>
+    <div class="stat paper cash" id="cashStat"><div class="lbl">cassa</div><div class="val" id="cash">0 €</div></div>
+    <div class="stat paper"><div class="lbl">mancano per le spese</div><div class="val" id="costs">9.000 €</div></div>
+    <div class="stat paper"><div class="lbl">reputazione</div><div class="val" id="repTxt">Sconosciuto</div><div class="rep-bar"><i id="repBar"></i></div></div>
+    <div class="stat paper"><div class="lbl">record</div><div class="val" id="best">—</div></div>
+  </section>
+
+  <section class="brief paper tape" id="brief">
+    <div class="brief-grid">
+      <div class="portrait">
+        <div class="frame" id="frame"></div>
+        <div class="mood-lbl" id="moodLbl"></div>
+      </div>
+      <div>
+        <div class="client" id="client"></div>
+        <div class="job" id="job"></div>
+        <div class="tags">
+          <span class="tag" id="temper"></span>
+          <span class="tag rate" id="rate"></span>
+          <span class="tag dl" id="deadline"></span>
+        </div>
+        <div class="meter">
+          <div class="top"><span>qualità del progetto</span><b id="qTxt">0</b></div>
+          <div class="bar"><i id="qBar"></i></div>
+        </div>
+        <div class="riskline" id="riskLine"></div>
+      </div>
+    </div>
+    <div class="fee-row">
+      <div class="fee win">Se consegni ora incassi <b id="fee">0 €</b><small id="feeNote"></small></div>
+      <div class="fee lose">Se il cliente molla perdi <b id="loss">0 €</b></div>
+    </div>
+    <div class="perks" id="perks"></div>
+  </section>
+
+  <section class="log paper" id="log" aria-live="polite"></section>
+
+  <section class="actions revs">
+    <button class="btn b-rit" id="ritBtn">🖍️ Ritocco<small>+1/+4 qualità · irrita poco</small></button>
+    <button class="btn b-rev" id="revBtn">✏️ Revisione<small>+2/+12 qualità · normale</small></button>
+    <button class="btn b-ref" id="refBtn">🔥 Rifaccio tutto<small>+10/+25, o peggiora · irrita molto</small></button>
+  </section>
+  <section class="actions other">
+    <button class="btn b-ship" id="shipBtn">📦 Consegna e fattura</button>
+    <button class="btn b-cof" id="coffeeBtn">☕ Caffè<small>calma e ti fa capire il cliente</small></button>
+    <button class="btn b-adv" id="advBtn">💶 Acconto<small>30% subito · irrita</small></button>
+  </section>
+  <div class="keys">Tastiera: 1 ritocco · 2 revisione · 3 rifaccio · C consegna · B caffè · A acconto</div>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal paper tape" id="modal" role="dialog" aria-modal="true"></div>
+</div>
+
+<script>
+(() => {
+  /* =========================================================
+     PARAMETRI
+     ========================================================= */
+  const YEARS = 2, PER_YEAR = 5;
+  const COSTS = [9000, 16000];
+  const REP_TIERS = [
+    { min: 0, name: "Sconosciuto" }, { min: 20, name: "Emergente" },
+    { min: 45, name: "Affermato" }, { min: 75, name: "Di grido" }
+  ];
+  // m = moltiplicatore del rischio di questa azione · h = quanto irrita (accumulo)
+  const TYPES = {
+    rit: { m: 0.6, h: 0.5, name: "ritocco" },
+    rev: { m: 1.0, h: 1.0, name: "revisione" },
+    ref: { m: 1.4, h: 2.0, name: "rifacimento" }
+  };
+  const SHOP = [
+    { id: "intern", ico: "🧑‍🎓", name: "Stagista", price: 3000, desc: "La prima revisione di ogni progetto non irrita il cliente." },
+    { id: "software", ico: "🖥️", name: "Software pro", price: 2500, desc: "+2 qualità a ogni revisione riuscita." },
+    { id: "ads", ico: "📣", name: "Pubblicità", price: 2000, desc: "+15 reputazione e 3 offerte tra cui scegliere invece di 2." },
+    { id: "accountant", ico: "🧑‍⚖️", name: "Commercialista", price: 1500, desc: "Niente controlli fiscali e spese di fine anno −10%." },
+    { id: "espresso", ico: "☕", name: "Macchina espresso", price: 1000, desc: "Puoi offrire il caffè due volte per progetto." }
+  ];
+
+  /* av = come disegnare il ritratto */
+  const CLIENTS = [
+    { name: "Pizzeria Da Totò", job: "Nuovo menù e insegna", rate: 100, base: 0.05, k: 0.025, max: 5, temper: "Alla mano", rep: 0,
+      av: { bg: "#ffd9a8", skin: "#f2c09b", hair: "#3b2a20", top: "chef", shirt: "#f4f1ea", acc: ["mustache"] } },
+    { name: "Studio Legale Rossi & Figli", job: "Restyling del logo", rate: 115, base: 0.07, k: 0.032, max: 4, temper: "Formale", rep: 0,
+      av: { bg: "#c8d6f0", skin: "#e9b48f", hair: "#9a9a9a", top: "short", shirt: "#2d3a5a", acc: ["glassesRect", "tie"] } },
+    { name: "Startup GreenChain", job: "Pitch deck per investitori", rate: 140, base: 0.05, k: 0.045, max: 3, temper: "Frenetico", rep: 0,
+      av: { bg: "#c9f0d4", skin: "#c98e66", hair: "#1e1a17", top: "curly", shirt: "#4fa86a", acc: ["headphones"] } },
+    { name: "Assessorato alla Cultura", job: "Identità di un festival", rate: 75, base: 0.02, k: 0.014, max: 6, temper: "Paziente (e lento)", rep: 0,
+      av: { bg: "#f3d0dc", skin: "#f0c7a6", hair: "#6b4a3a", top: "bun", shirt: "#b05a7a", acc: ["glassesRound", "earrings"] } },
+    { name: "Cantina Etna Rosso", job: "Etichetta della nuova annata", rate: 120, base: 0.04, k: 0.034, max: 4, temper: "Esigente", rep: 0,
+      av: { bg: "#f0c9cf", skin: "#d9a07a", hair: "#2a1d18", top: "short", shirt: "#7a2a3a", acc: ["beard"] } },
+    { name: "Immobiliare Prestige", job: "Sito vetrina", rate: 150, base: 0.10, k: 0.042, max: 3, temper: "Impaziente", rep: 0,
+      av: { bg: "#f6e7a6", skin: "#eab38a", hair: "#151515", top: "slick", shirt: "#333333", acc: ["sunglasses", "tie"] } },
+    { name: "Palestra IronFit", job: "Campagna social di settembre", rate: 105, base: 0.06, k: 0.028, max: 5, temper: "Energico", rep: 0,
+      av: { bg: "#ffd0b8", skin: "#b97a55", hair: "#1e1a17", top: "bald", shirt: "#e8572f", acc: ["headband"] } },
+    { name: "Museo Civico", job: "Allestimento e segnaletica", rate: 85, base: 0.03, k: 0.018, max: 6, temper: "Riflessivo", rep: 0,
+      av: { bg: "#e3dccb", skin: "#f1d0b5", hair: "#d8d8d8", top: "fluffy", shirt: "#6b5b3e", acc: ["glassesRound", "bowtie"] } },
+    { name: "Atelier Viola Couture", job: "Lookbook autunno/inverno", rate: 180, base: 0.06, k: 0.040, max: 4, temper: "Capricciosa", rep: 20,
+      av: { bg: "#e6d2f2", skin: "#f3c4a8", hair: "#3a2340", top: "long", shirt: "#8e44ad", acc: ["earrings", "lipstick"] } },
+    { name: "Festival Onde Sonore", job: "Poster e merchandising", rate: 160, base: 0.04, k: 0.030, max: 5, temper: "Creativo", rep: 20,
+      av: { bg: "#d0f0f0", skin: "#a8704d", hair: "#e0a400", top: "beanie", shirt: "#2d2d2d", acc: ["earrings"] } },
+    { name: "Banca Meridiana", job: "Rebranding nazionale", rate: 230, base: 0.08, k: 0.045, max: 3, temper: "Burocratica", rep: 45,
+      av: { bg: "#d5dde6", skin: "#e7b995", hair: "#7d7d7d", top: "short", shirt: "#34495e", acc: ["glassesRect", "tie", "mustache"] } },
+    { name: "Aerolinee Alba", job: "Livrea della nuova flotta", rate: 260, base: 0.10, k: 0.050, max: 3, temper: "Spietato", rep: 45,
+      av: { bg: "#cfe3ff", skin: "#d39a73", hair: "#2a1d18", top: "pilot", shirt: "#1f3a6b", acc: ["tie"] } }
+  ];
+
+  const REQUESTS = [
+    ["Bellissimo! Solo un piccolo dettaglio…", "Mi piace, ma proviamo in blu?", "Possiamo fare il logo un filo più grande?",
+     "Ottimo lavoro. Giusto una prova con un altro font?", "Mia nipote dice che il font è vecchio. Che ne pensa?", "Si può rendere più… moderno?"],
+    ["Il capo ha visto e vuole più colore.", "Togliamo lo spazio bianco, sembra vuoto.", "Il concorrente ha fatto una cosa simile, ma meglio.",
+     "Rimettiamo la versione di prima, ma diversa.", "Aggiungiamo anche il numero di telefono. E il fax.", "Deve 'spaccare' di più. Capisce cosa intendo?"],
+    ["Come le avevo GIÀ detto due volte…", "Non mi sembra così difficile, sinceramente.", "Ci serve per ieri. Ma senza fretta, eh.",
+     "Ho fatto vedere a mio cugino, lui lo faceva in un'ora.", "Ultima modifica. Davvero l'ultima. Forse.", "Mi chiedo per cosa la stiamo pagando."]
+  ];
+  const ANGRY = ["Sa cosa? Lasciamo perdere. Lo fa mio cugino.", "Basta, ci ho ripensato: niente progetto.",
+    "Abbiamo deciso di usare un template online.", "Troppe versioni, non ci capiamo più. Chiudiamo qui.", "Il budget è stato spostato su altro. Mi spiace."];
+  const HAPPY = ["Perfetto, lo mandiamo in stampa!", "Bellissimo, grazie. Mandi pure la fattura.", "Esattamente quello che avevo in mente.", "Ci piace. Pubblichiamo."];
+  const WORSE = ["Mmh… preferivo prima.", "No, così è peggio. Molto peggio.", "Ma che ha fatto?!"];
+  const MOODS = [
+    { max: 0.12, lbl: "sereno", lvl: 0, col: "var(--green)" },
+    { max: 0.25, lbl: "tranquillo", lvl: 0, col: "var(--green)" },
+    { max: 0.38, lbl: "perplesso", lvl: 1, col: "var(--amber)" },
+    { max: 0.52, lbl: "irritato", lvl: 1, col: "var(--red)" },
+    { max: 9, lbl: "furioso!", lvl: 2, col: "var(--red)" }
+  ];
+
+  /* =========================================================
+     AVATAR SVG (stile matita colorata)
+     ========================================================= */
+  const INK = "#2b2a33";
+  const st = (w = 2.2) => `stroke="${INK}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"`;
+
+  function avatarSVG(c, mood = 1) {
+    const a = c.av, S = st(), s1 = st(1.6);
+    const back = [], front = [];
+    // capelli dietro la testa
+    if (a.top === "long") back.push(`<path d="M26 52 C22 24 40 16 50 16 C62 16 79 24 74 52 L78 82 L22 82 Z" fill="${a.hair}" ${S}/>`);
+    // collo e spalle
+    let body = `<path d="M12 104 C14 84 30 77 50 77 C70 77 86 84 88 104 Z" fill="${a.shirt}" ${S}/>
+      <path d="M62 80 C74 84 84 90 86 104 L66 104 Z" fill="url(#hatch)"/>
+      <path d="M44 64 L44 78 Q50 82 56 78 L56 64 Z" fill="${a.skin}" ${S}/>`;
+    // orecchie + testa
+    let head = `<ellipse cx="28.5" cy="53" rx="4.2" ry="6" fill="${a.skin}" ${S}/>
+      <ellipse cx="71.5" cy="53" rx="4.2" ry="6" fill="${a.skin}" ${S}/>
+      <path d="M29 48 C29 30 38 24 50 24 C62 24 71 30 71 48 C71 64 62 75 50 75 C38 75 29 64 29 48 Z" fill="${a.skin}" ${S}/>
+      <path d="M63 34 C70 42 70 58 62 70 C66 60 67 46 63 34 Z" fill="url(#hatch)"/>`;
+    if (mood >= 3) head += `<path d="M29 48 C29 30 38 24 50 24 C62 24 71 30 71 48 C71 64 62 75 50 75 C38 75 29 64 29 48 Z" fill="#e0533d" opacity="${mood === 3 ? .18 : .38}"/>`;
+
+    // capelli davanti / copricapi
+    const hairF = {
+      short: `<path d="M29 46 C27 26 40 20 50 20 C61 20 74 26 71 46 C67 37 58 32 48 33 C40 34 33 38 29 46 Z" fill="${a.hair}" ${S}/>`,
+      slick: `<path d="M29 46 C27 24 42 19 52 19 C64 19 74 27 71 44 C64 33 50 30 40 34 C35 36 31 40 29 46 Z" fill="${a.hair}" ${S}/>
+              <path d="M44 24 C52 22 60 24 66 30" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/>`,
+      curly: [[31,40,7],[36,30,8],[46,24,8],[57,24,8],[66,30,8],[70,40,6.5],[42,33,6],[55,32,6]]
+              .map(([x,y,r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${a.hair}" ${s1}/>`).join(""),
+      fluffy: [[30,42,7],[33,32,7.5],[42,26,7.5],[52,24,7],[62,27,7.5],[69,35,7],[71,44,5.5]]
+              .map(([x,y,r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${a.hair}" ${s1}/>`).join("") +
+              `<path d="M36 36 C44 31 56 31 64 36" fill="${a.skin}" stroke="none"/>`,
+      bun: `<circle cx="50" cy="17" r="8" fill="${a.hair}" ${S}/>
+            <path d="M29 46 C27 26 40 22 50 22 C61 22 74 26 71 46 C66 34 58 30 50 30 C42 30 34 34 29 46 Z" fill="${a.hair}" ${S}/>`,
+      long: `<path d="M30 44 C32 28 44 24 52 24 C62 24 70 30 70 44 C62 36 54 34 46 36 C40 37 34 40 30 44 Z" fill="${a.hair}" ${S}/>`,
+      bald: `<path d="M30 44 C30 38 32 34 34 32" fill="none" ${S}/><path d="M70 44 C70 38 68 34 66 32" fill="none" ${S}/>
+             <path d="M42 28 C46 26 54 26 58 28" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2.2" stroke-linecap="round"/>`,
+      chef: `<path d="M34 34 L34 20 C26 20 26 6 38 9 C40 1 60 1 62 9 C74 6 74 20 66 20 L66 34 Z" fill="#ffffff" ${S}/>
+             <path d="M34 30 L66 30" ${S}/><path d="M44 12 L44 26 M56 12 L56 26" stroke="${INK}" stroke-opacity=".35" stroke-width="1.4"/>`,
+      beanie: `<path d="M28 44 C28 20 72 20 72 44 Z" fill="${a.hair}" ${S}/>
+               <rect x="26" y="38" width="48" height="9" rx="4" fill="${a.hair}" ${S}/>
+               <path d="M32 40 L32 46 M38 40 L38 46 M44 40 L44 46 M50 40 L50 46 M56 40 L56 46 M62 40 L62 46 M68 40 L68 46" stroke="${INK}" stroke-opacity=".4" stroke-width="1.2"/>
+               <circle cx="50" cy="19" r="5.5" fill="${a.hair}" ${S}/>`,
+      pilot: `<path d="M28 40 C28 22 72 22 72 40 Z" fill="${a.shirt}" ${S}/>
+              <path d="M25 40 Q50 49 75 40 L75 44 Q50 54 25 44 Z" fill="#1d1d1d" ${S}/>
+              <circle cx="50" cy="32" r="4" fill="#e8b923" ${s1}/><path d="M40 32 L46 32 M54 32 L60 32" stroke="#e8b923" stroke-width="2.4" stroke-linecap="round"/>`
+    };
+
+    // occhi e sopracciglia in base all'umore
+    const eyes = {
+      0: `<path d="M38 52 Q42 47.5 46 52" fill="none" ${S}/><path d="M54 52 Q58 47.5 62 52" fill="none" ${S}/>`,
+      1: `<circle cx="42" cy="51" r="2.6" fill="${INK}"/><circle cx="58" cy="51" r="2.6" fill="${INK}"/>`,
+      2: `<circle cx="42" cy="51.5" r="2.5" fill="${INK}"/><circle cx="58" cy="51.5" r="2.5" fill="${INK}"/>`,
+      3: `<circle cx="42" cy="52" r="2.2" fill="${INK}"/><circle cx="58" cy="52" r="2.2" fill="${INK}"/>`,
+      4: `<circle cx="42" cy="52" r="1.8" fill="${INK}"/><circle cx="58" cy="52" r="1.8" fill="${INK}"/>`
+    };
+    const brows = {
+      0: `<path d="M37 43 Q42 40 47 43" fill="none" ${S}/><path d="M53 43 Q58 40 63 43" fill="none" ${S}/>`,
+      1: `<path d="M37 44 Q42 42 47 44" fill="none" ${S}/><path d="M53 44 Q58 42 63 44" fill="none" ${S}/>`,
+      2: `<path d="M37 44.5 L47 44.5" fill="none" ${S}/><path d="M53 42 Q58 39 63 42" fill="none" ${S}/>`,
+      3: `<path d="M37 43 L47 46" fill="none" stroke="${INK}" stroke-width="2.8" stroke-linecap="round"/><path d="M63 43 L53 46" fill="none" stroke="${INK}" stroke-width="2.8" stroke-linecap="round"/>`,
+      4: `<path d="M36 41 L47 47" fill="none" stroke="${INK}" stroke-width="3.2" stroke-linecap="round"/><path d="M64 41 L53 47" fill="none" stroke="${INK}" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M47 38 L49 41 M53 38 L51 41" ${s1}/>`
+    };
+    const lip = a.acc.includes("lipstick") ? "#c2185b" : INK;
+    const mouths = {
+      0: `<path d="M41 62 Q50 72 59 62 Z" fill="#8a2b2b" stroke="${lip}" stroke-width="2.2" stroke-linejoin="round"/><path d="M44 63.5 L56 63.5" stroke="#fff" stroke-width="2"/>`,
+      1: `<path d="M43 64 Q50 69 57 64" fill="none" stroke="${lip}" stroke-width="2.4" stroke-linecap="round"/>`,
+      2: `<path d="M44 66 Q50 64 56 66.5" fill="none" stroke="${lip}" stroke-width="2.4" stroke-linecap="round"/>`,
+      3: `<path d="M43 68 Q50 62 57 68" fill="none" stroke="${lip}" stroke-width="2.6" stroke-linecap="round"/>`,
+      4: `<ellipse cx="50" cy="67" rx="6.5" ry="5" fill="#5e1b1b" stroke="${lip}" stroke-width="2.2"/><path d="M45 65 L55 65" stroke="#fff" stroke-width="1.6"/>`
+    };
+    const nose = `<path d="M50 53 Q47 59 50.5 60" fill="none" ${s1}/>`;
+    const cheeks = mood <= 1 ? `<circle cx="36" cy="60" r="4" fill="#ff7a7a" opacity=".3"/><circle cx="64" cy="60" r="4" fill="#ff7a7a" opacity=".3"/>` : "";
+
+    const accF = {
+      glassesRound: `<circle cx="42" cy="51.5" r="6.5" fill="none" ${S}/><circle cx="58" cy="51.5" r="6.5" fill="none" ${S}/><path d="M48.5 51 L51.5 51 M35.5 50 L30 48 M64.5 50 L70 48" ${S}/>`,
+      glassesRect: `<rect x="35" y="47" width="14" height="10" rx="2" fill="#ffffff" fill-opacity=".15" ${S}/><rect x="51" y="47" width="14" height="10" rx="2" fill="#ffffff" fill-opacity=".15" ${S}/><path d="M49 51 L51 51 M35 50 L30 48 M65 50 L70 48" ${S}/>`,
+      sunglasses: `<path d="M34 47 L49 47 L48 55 Q42 58 36 55 Z" fill="#141414" ${S}/><path d="M51 47 L66 47 L64 55 Q58 58 52 55 Z" fill="#141414" ${S}/><path d="M49 48 L51 48 M34 48 L30 47 M66 48 L70 47" ${S}/>
+                   <path d="M38 49 L41 49" stroke="#fff" stroke-opacity=".6" stroke-width="1.5" stroke-linecap="round"/><path d="M55 49 L58 49" stroke="#fff" stroke-opacity=".6" stroke-width="1.5" stroke-linecap="round"/>`,
+      mustache: `<path d="M39 61 Q44 56 50 59.5 Q56 56 61 61 Q56 63.5 50 61.5 Q44 63.5 39 61 Z" fill="${a.hair}" ${s1}/>`,
+      beard: `<path d="M31 56 C32 70 40 77 50 77 C60 77 68 70 69 56 C66 64 60 68 56 66 Q50 63 44 66 C40 68 34 64 31 56 Z" fill="${a.hair}" ${s1}/>`,
+      tie: `<path d="M44 77 L50 84 L56 77" fill="#ffffff" ${s1}/><path d="M48 83 L52 83 L54.5 97 L50 102 L45.5 97 Z" fill="#c0392b" ${s1}/>`,
+      bowtie: `<path d="M50 80 L41 75.5 L41 84.5 Z M50 80 L59 75.5 L59 84.5 Z" fill="#c0392b" ${s1}/><circle cx="50" cy="80" r="2.2" fill="#c0392b" ${s1}/>`,
+      earrings: `<circle cx="28" cy="61" r="2.6" fill="#e8b923" ${s1}/><circle cx="72" cy="61" r="2.6" fill="#e8b923" ${s1}/>`,
+      headphones: `<path d="M25 52 C23 14 77 14 75 52" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>
+                   <rect x="20" y="45" width="10" height="16" rx="4" fill="#ff5a5a" ${S}/><rect x="70" y="45" width="10" height="16" rx="4" fill="#ff5a5a" ${S}/>`,
+      headband: `<path d="M29.5 37 Q50 29 70.5 37 L71 43 Q50 35 29 43 Z" fill="#ffffff" ${s1}/><path d="M30 39.5 Q50 32 70 39.5" stroke="#e8572f" stroke-width="2.4" fill="none"/>`,
+      lipstick: ""
+    };
+    const fx = mood === 4
+      ? `<path d="M18 30 q-4 -5 0 -10 q4 -5 0 -10" fill="none" ${S} opacity=".8"/><path d="M82 30 q4 -5 0 -10 q-4 -5 0 -10" fill="none" ${S} opacity=".8"/>`
+      : mood === 3 ? `<path d="M76 30 L84 26 M77 36 L86 36" ${S}/>`
+      : mood === 2 ? `<path d="M73 36 Q70 42 73 44 Q76 42 73 36 Z" fill="#8fd0ff" ${s1}/>` : "";
+
+    front.push(hairF[a.top] || "");
+    const faceParts = (a.acc.includes("sunglasses") ? "" : eyes[mood]) + brows[mood] + nose + cheeks + mouths[mood];
+    const accs = a.acc.filter(x => x !== "headphones").map(x => accF[x]).join("");
+    const top = a.acc.includes("headphones") ? accF.headphones : "";
+
+    return `<svg class="avatar-svg" viewBox="0 0 100 104" role="img" aria-label="${c.name}, ${MOODS[mood].lbl}">
+      <rect x="2" y="2" width="96" height="100" rx="8" fill="${a.bg}"/>
+      <rect x="2" y="2" width="96" height="100" rx="8" fill="url(#hatch)" opacity=".35"/>
+      <g filter="url(#wobble)">${back.join("")}${body}${head}${front.join("")}${faceParts}${accs}${top}${fx}</g>
+    </svg>`;
+  }
+
+  /* =========================================================
+     UTILITÀ
+     ========================================================= */
+  const $ = id => document.getElementById(id);
+  const el = {};
+  ["round","cash","cashStat","costs","repTxt","repBar","best","brief","frame","moodLbl","client","job","temper","rate","deadline",
+   "qTxt","qBar","riskLine","fee","feeNote","loss","perks","log","ritBtn","revBtn","refBtn","shipBtn","coffeeBtn","advBtn",
+   "overlay","modal","soundBtn"].forEach(id => el[id] = $(id));
+  const eur = n => Math.round(n).toLocaleString("it-IT") + " €";
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  let best = null;
+  try { const v = localStorage.getItem("revisione-best-v3"); if (v !== null) best = parseInt(v, 10); } catch (e) {}
+
+  /* ---------- suoni ---------- */
+  let soundOn = false, actx = null;
+  try { soundOn = localStorage.getItem("revisione-sound") === "1"; } catch (e) {}
+  function ctx() { if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } return actx; }
+  function tone(freq, dur, type = "sine", vol = 0.12, delay = 0, slide = 0) {
+    if (!soundOn) return; const c = ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(freq * slide, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(dur, vol = 0.18, hp = 900) {
+    if (!soundOn) return; const c = ctx(); if (!c) return;
+    const buf = c.createBuffer(1, c.sampleRate * dur, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const src = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
+    f.type = "highpass"; f.frequency.value = hp; g.gain.value = vol;
+    src.buffer = buf; src.connect(f).connect(g).connect(c.destination); src.start();
+  }
+  const sfx = {
+    msg: () => tone(880, 0.07, "sine", 0.05),
+    pencil: () => noise(0.12, 0.08, 2500),
+    coin: () => { tone(1320, 0.09, "square", 0.05); tone(1760, 0.18, "square", 0.05, 0.08); },
+    fail: () => { noise(0.45); tone(220, 0.5, "sawtooth", 0.06, 0, 0.5); },
+    worse: () => tone(300, 0.35, "triangle", 0.08, 0, 0.6),
+    coffee: () => { tone(440, 0.12, "sine", 0.08); tone(554, 0.2, "sine", 0.08, 0.1); },
+    idea: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.12, "triangle", 0.07, i * 0.07)),
+    fanfare: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, 0.18, "triangle", 0.08, i * 0.11)),
+    sad: () => [392, 330, 262].forEach((f, i) => tone(f, 0.35, "sine", 0.08, i * 0.25)),
+    buy: () => { tone(988, 0.08, "square", 0.05); tone(1319, 0.15, "square", 0.05, 0.07); }
+  };
+  function syncSoundBtn() { el.soundBtn.textContent = soundOn ? "🔊" : "🔇"; el.soundBtn.setAttribute("aria-label", soundOn ? "Disattiva suoni" : "Attiva suoni"); }
+  el.soundBtn.addEventListener("click", () => {
+    soundOn = !soundOn; try { localStorage.setItem("revisione-sound", soundOn ? "1" : "0"); } catch (e) {}
+    syncSoundBtn(); if (soundOn) { ctx()?.resume?.(); sfx.coin(); }
+  });
+  syncSoundBtn();
+
+  /* ---------- effetti ---------- */
+  const center = n => { const r = n.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
+  function flyCoins(fromNode, toNode, n = 8) {
+    const a = center(fromNode), b = center(toNode);
+    for (let i = 0; i < n; i++) {
+      const c = document.createElement("div"); c.className = "fx"; c.textContent = i % 3 ? "🪙" : "💶";
+      c.style.left = (a.x - 12) + "px"; c.style.top = (a.y - 12) + "px"; document.body.appendChild(c);
+      const dx = b.x - a.x, dy = b.y - a.y, mx = (Math.random() - .5) * 160, my = -60 - Math.random() * 80;
+      c.animate([
+        { transform: "translate(0,0) scale(.6)", opacity: 0 },
+        { transform: `translate(${dx / 2 + mx}px, ${dy / 2 + my}px) scale(1.15)`, opacity: 1, offset: .45 },
+        { transform: `translate(${dx}px, ${dy}px) scale(.5)`, opacity: .2 }
+      ], { duration: 750 + i * 45, easing: "cubic-bezier(.3,.7,.4,1)", delay: i * 35 }).onfinish = () => c.remove();
+    }
+    setTimeout(() => { el.cashStat.classList.remove("bump"); void el.cashStat.offsetWidth; el.cashStat.classList.add("bump"); }, 800);
+  }
+  function countTo(node, from, to, ms = 900) {
+    const t0 = performance.now();
+    const step = t => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+      node.textContent = eur(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+  function floatNum(node, text, color) {
+    const p = center(node), f = document.createElement("div");
+    f.className = "float-num"; f.textContent = text; f.style.color = color || "var(--green)";
+    f.style.left = (p.x - 20) + "px"; f.style.top = (p.y - 34) + "px";
+    document.body.appendChild(f); setTimeout(() => f.remove(), 1000);
+  }
+  function confetti(n = 90) {
+    const cols = ["#2f4fd0", "#2e9a52", "#ffe066", "#d8412f", "#ffd6e0", "#cdeffd"];
+    for (let i = 0; i < n; i++) {
+      const c = document.createElement("div"); c.className = "confetti";
+      c.style.left = Math.random() * 100 + "vw"; c.style.background = pick(cols); document.body.appendChild(c);
+      const drift = (Math.random() - .5) * 240, rot = Math.random() * 720;
+      c.animate([{ transform: "translate(0,0) rotate(0)" }, { transform: `translate(${drift}px, ${window.innerHeight + 40}px) rotate(${rot}deg)` }],
+        { duration: 1800 + Math.random() * 1600, delay: Math.random() * 500, easing: "cubic-bezier(.2,.6,.4,1)" }).onfinish = () => c.remove();
+    }
+  }
+  function toast(html) {
+    const t = document.createElement("div"); t.className = "toast"; t.innerHTML = html;
+    document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+  }
+
+  /* =========================================================
+     STATO E FLUSSO DI GIOCO
+     ========================================================= */
+  let s = null;
+  const has = id => s.owned && s.owned.has(id);
+  const costFor = y => Math.round(COSTS[y - 1] * (has("accountant") ? 0.9 : 1));
+  const tierIdx = r => REP_TIERS.filter(t => r >= t.min).length - 1;
+  const tierName = r => REP_TIERS[tierIdx(r)].name;
+
+  function newGame() {
+    s = { year: 1, proj: 1, cash: 0, rep: 0, yearEarn: 0, history: [[], []], used: new Set(), owned: new Set(),
+          deferred: 0, flu: 0, lastGot: 0, maxTier: 0, phase: "idle" };
+    offerScreen();
+  }
+
+  /* ---------- scelta del cliente ---------- */
+  function patience(c) {
+    const r5 = c.base + c.k * 16;
+    const n = clamp(Math.round(5 - (r5 - 0.25) / 0.13), 1, 5);
+    return "●".repeat(n) + "○".repeat(5 - n);
+  }
+  function offerScreen(notice = "") {
+    s.phase = "offer";
+    const pool = CLIENTS.filter(c => c.rep <= s.rep && !s.used.has(c));
+    const weighted = pool.flatMap(c => c.rep > 0 ? [c, c, c] : [c]);
+    const n = has("ads") ? 3 : 2, offers = [];
+    while (offers.length < n && offers.length < pool.length) { const c = pick(weighted); if (!offers.includes(c)) offers.push(c); }
+    s.offers = offers;
+    setModal(`
+      <h2>Anno ${s.year} · progetto ${s.proj}/${PER_YEAR}</h2>
+      ${notice ? `<p style="color:var(--green);font-weight:700">${notice}</p>` : ""}
+      <p>${offers.length} clienti ti cercano. Quale incarico accetti?</p>
+      <div class="offers">${offers.map((c, i) => `
+        <button class="offer" data-i="${i}">
+          <div class="oa">${avatarSVG(c, 1)}</div>
+          <span class="on">${c.name}</span>
+          <span class="oj">${c.job}${c.rep ? ' · <span class="tag prem">★ premium</span>' : ""}</span>
+          <span class="orow"><span>Tariffa</span><b>${c.rate} €/punto</b></span>
+          <span class="orow"><span>Pazienza</span><b class="pat">${patience(c)}</b></span>
+          <span class="orow"><span>Scadenza</span><b>${c.max} revisioni</b></span>
+          <span class="orow"><span>Carattere</span><b>${c.temper}</b></span>
+          <span class="key">tasto ${i + 1}</span>
+        </button>`).join("")}
+      </div>`, "wide");
+    el.modal.querySelectorAll(".offer").forEach(b => b.onclick = () => chooseOffer(+b.dataset.i));
+  }
+  function chooseOffer(i) {
+    if (s.phase !== "offer" || !s.offers[i]) return;
+    hide(); startProject(s.offers[i]);
+  }
+
+  /* ---------- progetto ---------- */
+  function startProject(c) {
+    s.used.add(c);
+    const q0 = Math.max(4, rand(8, 14) - s.flu);
+    const sick = s.flu > 0; s.flu = 0;
+    Object.assign(s, { c, quality: q0, heat: 0, n: 0, mod: 0, over: false, coffeeLeft: has("espresso") ? 2 : 1,
+      half: false, advance: 0, reveal: false, noise: 0, phase: "play", lastMood: -1, outcome: null });
+    el.brief.classList.remove("crumple");
+    el.log.innerHTML = "";
+    say("sys", `Nuovo incarico: ${c.job}`);
+    say("me", `Ecco la bozza! (qualità ${s.quality})${sick ? " 🤧 fatta col raffreddore…" : ""}`);
+    say("client", "Grazie, la guardo. Intanto… qualche ritocco?");
+    render();
+  }
+
+  const riskAt = h => clamp(s.c.base + s.c.k * h * h + s.mod, 0.01, 0.95);
+  const risk = () => riskAt(s.heat);
+  const actionRisk = t => Math.min(0.97, risk() * TYPES[t].m);
+  const late = () => s.n > s.c.max;
+  const value = () => s.quality * s.c.rate * (late() ? 0.5 : 1);
+  const moodIdx = () => {
+    if (s.outcome === "ok") return 0;
+    if (s.outcome === "fail") return 4;
+    const v = risk() + s.noise;
+    return MOODS.findIndex(m => v <= m.max);
+  };
+
+  function act(type) {
+    if (s.phase !== "play" || s.over) return;
+    const p = actionRisk(type);
+    const lvl = MOODS[moodIdx()].lvl;
+    s.n++;
+    s.reveal = false;
+    say("client m" + (lvl + 1), pick(REQUESTS[lvl]));
+    sfx.pencil();
+    if (Math.random() < p) return fail();
+
+    let gain, note = "";
+    if (type === "rit") gain = rand(1, 4);
+    else if (type === "rev") {
+      gain = Math.max(1, Math.round(rand(2, 12) / (1 + 0.25 * (s.n - 1))));
+      if (Math.random() < 0.1) { gain += rand(8, 14); note = " 💡 Intuizione!"; setTimeout(sfx.idea, 150); }
+    } else {
+      if (Math.random() < 0.25) gain = -rand(3, 8);
+      else gain = Math.round(rand(10, 25) / (1 + 0.15 * (s.n - 1)));
+    }
+    if (gain > 0) {
+      if (has("software")) { gain += 2; note += " 🖥️"; }
+      if (s.half) { gain = Math.max(1, Math.round(gain / 2)); s.half = false; note += " ☕"; }
+    }
+    s.quality = Math.max(1, s.quality + gain);
+    s.heat += (has("intern") && s.n === 1) ? 0 : TYPES[type].h;
+    s.noise = (Math.random() - 0.5) * 0.2;
+    if (gain < 0) {
+      setTimeout(() => { say("client m2", pick(WORSE)); sfx.worse(); }, 300);
+      floatNum(el.qTxt, String(gain), "var(--red)");
+    } else {
+      setTimeout(() => { say("me", `Fatto, nuova versione.<span class="gain"> +${gain} qualità${note}</span>`); }, 250);
+      floatNum(el.qTxt, "+" + gain, "var(--pen)");
+    }
+    if (s.n === s.c.max + 1) setTimeout(() => say("sys", "⏰ Scadenza superata: ora il cliente pagherà solo metà."), 500);
+    render();
+  }
+
+  function fail() {
+    s.over = true; s.phase = "result"; s.outcome = "fail";
+    const lostValue = Math.max(0, value() - s.advance);
+    say("fail", "💥 " + pick(ANGRY));
+    sfx.fail();
+    el.brief.classList.add("crumple");
+    s.rep = Math.max(0, s.rep - 10);
+    s.history[s.year - 1].push({ c: s.c, got: s.advance, n: s.n, fail: true });
+    s.lastGot = 0;
+    s.quality = 0;
+    render();
+    setTimeout(() => resultModal(false, lostValue, -10), 1300);
+  }
+
+  function deliver() {
+    if (s.phase !== "play" || s.over) return;
+    s.over = true; s.phase = "result"; s.outcome = "ok";
+    const got = Math.max(0, Math.round(value() - s.advance));
+    const old = s.cash;
+    s.cash += got; s.yearEarn += got; s.lastGot = got;
+    let repGain = clamp(Math.round((s.quality - 16) / 2), 0, 12);
+    if (late()) repGain = Math.floor(repGain / 2);
+    s.rep = Math.min(100, s.rep + repGain);
+    s.history[s.year - 1].push({ c: s.c, got: got + s.advance, n: s.n, fail: false, late: late() });
+    say("client", pick(HAPPY));
+    flyCoins(el.fee, el.cash, 10); sfx.coin();
+    setTimeout(() => countTo(el.cash, old, s.cash), 450);
+    render(true);
+    setTimeout(() => resultModal(true, got + s.advance, repGain), 1300);
+  }
+
+  function coffee() {
+    if (s.phase !== "play" || s.over || s.coffeeLeft <= 0) return;
+    s.coffeeLeft--; s.half = true; s.reveal = true; s.mod -= 0.10; s.noise = 0;
+    sfx.coffee();
+    say("me", "☕ Che ne dice di parlarne davanti a un caffè?");
+    setTimeout(() => say("client", pick(["Volentieri! In effetti ero un po' nervoso.", "Ah, grazie. Le dico sinceramente cosa penso…", "Un caffè non si rifiuta mai."])), 300);
+    render();
+  }
+
+  function advance() {
+    if (s.phase !== "play" || s.over || s.advance) return;
+    const amt = Math.round(value() * 0.3);
+    s.advance = amt; s.mod += 0.10;
+    const old = s.cash; s.cash += amt; s.yearEarn += amt;
+    say("me", `💶 Le giro una fattura di acconto da ${eur(amt)}?`);
+    setTimeout(() => say("client m2", "Mmh… va bene. Ma ora voglio vedere risultati."), 300);
+    flyCoins(el.advBtn, el.cash, 5); sfx.coin();
+    setTimeout(() => countTo(el.cash, old, s.cash, 600), 450);
+    render(true);
+  }
+
+  /* ---------- esito e passaggi ---------- */
+  function resultModal(ok, amount, repDelta) {
+    const repLine = repDelta > 0 ? `<b style="color:var(--gold)">Reputazione +${repDelta}</b>`
+                  : repDelta < 0 ? `<b style="color:var(--red)">Reputazione ${repDelta}</b>` : "";
+    let body = `<div class="oa" style="width:96px;height:96px;margin:0 auto 6px">${avatarSVG(s.c, ok ? 0 : 4)}</div>`;
+    if (ok) {
+      body += `<div class="stamp" style="color:var(--green)">APPROVATO</div>
+        <div class="big" style="color:var(--green)">+${eur(amount)}</div>
+        <p>${s.n ? `${s.c.name} ha approvato dopo ${s.n} ${s.n === 1 ? "revisione" : "revisioni"}.` : `${s.c.name} ha preso la bozza così com'era.`}
+        ${s.history[s.year - 1].at(-1).late ? "<br>⏰ In ritardo: pagato a metà." : ""}<br>${repLine}</p>`;
+    } else {
+      body += `<div class="stamp" style="color:var(--red)">CESTINATO</div>
+        <div class="big" style="color:var(--red)">${s.advance ? "+" + eur(s.advance) : "0 €"}</div>
+        <p>${s.c.name} si è stufato alla revisione ${s.n}. Hai perso ${eur(amount)}.${s.advance ? " Per fortuna l'acconto resta tuo." : ""}<br>${repLine}</p>`;
+    }
+    const t = tierIdx(s.rep);
+    if (t > s.maxTier) {
+      s.maxTier = t;
+      body += `<p style="color:var(--gold);font-weight:700">${["", "★ Ora sei Emergente: arrivano clienti della moda e della musica!",
+        "★★ Ora sei Affermato: banche e compagnie aeree ti cercano!", "★★★ Sei uno studio di grido!"][t]}</p>`;
+    }
+    const lastOfYear = s.proj >= PER_YEAR;
+    setModal(body + `<button class="btn b-main" id="mBtn">${lastOfYear ? "Chiudi l'anno →" : "Avanti →"}</button>`);
+    $("mBtn").onclick = () => {
+      if (lastOfYear) return yearEnd();
+      s.proj++;
+      if (s.year === 1 && s.proj === 4) return shopScreen("Metà anno: investi nello studio?", "Ogni euro speso ora manca alle spese di fine anno.", () => maybeEvent());
+      maybeEvent();
+    };
+  }
+
+  /* ---------- imprevisti ---------- */
+  function maybeEvent() {
+    if (Math.random() >= 1 / 3) return offerScreen();
+    const evs = [
+      { w: 3, ok: () => true, ico: "💻", t: "Il computer si è rotto", run: () => { s.cash -= 800; return "Riparazione urgente: <b>−800 €</b>."; } },
+      { w: 2, ok: () => s.lastGot > 0, ico: "🐌", t: "Pagamento in ritardo", run: () => {
+          if (s.year === 1) { s.cash -= s.lastGot; s.yearEarn -= s.lastGot; s.deferred += s.lastGot;
+            return `L'ultimo cliente pagherà a 90 giorni: <b>${eur(s.lastGot)}</b> arriveranno solo l'anno prossimo.`; }
+          const cut = Math.round(s.lastGot * 0.2); s.cash -= cut; s.yearEarn -= cut;
+          return `L'ultimo cliente pretende uno sconto del 20%: <b>−${eur(cut)}</b>.`; } },
+      { w: 2, ok: () => true, ico: "📣", t: "Sei diventato virale!", run: () => { s.rep = Math.min(100, s.rep + 10); return "Un tuo lavoro gira sui social: <b>reputazione +10</b>."; } },
+      { w: 2, ok: () => s.cash > 0, ico: "🧾", t: "Controllo fiscale", run: () => {
+          if (has("accountant")) return "Il commercialista ha sistemato tutto. <b>Nessuna multa.</b>";
+          const fine = Math.round(s.cash * 0.1); s.cash -= fine; return `Qualche scontrino di troppo: <b>−${eur(fine)}</b>.`; } },
+      { w: 1, ok: () => true, ico: "🎁", t: "Una mancia inattesa", run: () => { s.cash += 500; return "Un vecchio cliente ti ringrazia con <b>+500 €</b>."; } },
+      { w: 2, ok: () => true, ico: "🤧", t: "Influenza", run: () => { s.flu = 4; return "Il prossimo progetto partirà con una bozza peggiore: <b>qualità −4</b>."; } }
+    ].filter(e => e.ok());
+    const e = pick(evs.flatMap(x => Array(x.w).fill(x)));
+    const msg = e.run();
+    render();
+    sfx.msg();
+    setModal(`<div class="event-ico">${e.ico}</div><h2>${e.t}</h2><p>${msg}</p>
+      <button class="btn b-main" id="mBtn">Avanti →</button>`);
+    $("mBtn").onclick = () => offerScreen();
+  }
+
+  /* ---------- negozio ---------- */
+  function shopScreen(title, sub, next) {
+    s.phase = "shop";
+    const draw = () => {
+      const items = SHOP.map(it => {
+        const own = has(it.id), afford = s.cash >= it.price;
+        return `<div class="item ${own ? "owned" : ""}">
+          <span class="price">${eur(it.price)}</span>
+          <span class="ii">${it.ico}</span><span class="in">${it.name}</span>
+          <span class="id">${it.desc}</span>
+          <button class="btn" data-id="${it.id}" ${own || !afford ? "disabled" : ""}>${own ? "Già tuo ✓" : afford ? "Compra" : "Non basta la cassa"}</button>
+        </div>`;
+      }).join("");
+      setModal(`<h2>🛒 ${title}</h2><p>${sub}<br>Cassa: <b class="hl">${eur(s.cash)}</b> · Prossime spese: <b>${eur(costFor(s.phaseYearEnd ? s.year + 1 : s.year))}</b></p>
+        <div class="shop">${items}</div>
+        <button class="btn b-main" id="mBtn">Continua →</button>`, "wide");
+      el.modal.querySelectorAll(".item .btn").forEach(b => b.onclick = () => {
+        const it = SHOP.find(x => x.id === b.dataset.id);
+        if (s.cash < it.price || has(it.id)) return;
+        s.cash -= it.price; s.owned.add(it.id); sfx.buy();
+        if (it.id === "ads") s.rep = Math.min(100, s.rep + 15);
+        render(); draw();
+      });
+      $("mBtn").onclick = () => { s.phaseYearEnd = false; next(); };
+    };
+    draw();
+  }
+
+  /* ---------- fine anno ---------- */
+  function yearEnd() {
+    const cost = costFor(s.year);
+    s.cash -= cost; s.paid = s.cash >= 0;
+    const rows = s.history[s.year - 1].map(h => `<div><span>${h.c.name} · ${h.n} rev.${h.late ? " ⏰" : ""}</span>
+      <b style="color:${h.fail ? "var(--red)" : "var(--green)"}">${h.fail ? (h.got ? "cestinato (acconto " + eur(h.got) + ")" : "cestinato") : eur(h.got)}</b></div>`).join("");
+    const summary = `<div class="summary">${rows}
+      <div class="tot"><span>Incassato nell'anno ${s.year}</span><span>${eur(s.yearEarn)}</span></div>
+      <div class="tot"><span>Spese fisse${has("accountant") ? " (−10%)" : ""}</span><span style="color:var(--red)">−${eur(cost)}</span></div>
+      <div class="tot"><span>${s.year >= YEARS ? "Utile finale" : "Cassa"}</span><span style="color:${s.cash >= 0 ? "var(--green)" : "var(--red)"}">${eur(s.cash)}</span></div></div>`;
+    render();
+    if (s.cash < 0) {
+      sfx.sad();
+      setModal(`<div class="stamp" style="color:var(--red)">FALLITO</div><h2>Studio in rosso</h2>
+        <div class="big" style="color:var(--red)">${eur(s.cash)}</div>
+        <p>Fine anno ${s.year}: le spese di ${eur(cost)} non sono coperte. Lo studio chiude.</p>${summary}
+        <button class="btn b-main" id="mBtn">Riapri lo studio</button>`);
+      $("mBtn").onclick = () => titleScreen();
+      return;
+    }
+    if (s.year >= YEARS) return finalScreen(summary);
+    sfx.fanfare(); confetti(50);
+    setModal(`<h2>🎉 Anno ${s.year} superato!</h2><div class="big">${eur(s.cash)}</div>
+      <p>Spese pagate. L'avanzo passa all'anno prossimo, ma le spese salgono a <b>${eur(COSTS[s.year])}</b>.
+      ${s.deferred ? `<br>In arrivo a inizio anno: <b>${eur(s.deferred)}</b> di pagamenti in ritardo.` : ""}
+      <br>Reputazione: <b style="color:var(--gold)">${tierName(s.rep)}</b></p>${summary}
+      <button class="btn b-main" id="mBtn">Al negozio →</button>`);
+    $("mBtn").onclick = () => {
+      s.phaseYearEnd = true;
+      shopScreen("Fine anno: investi nello studio?", "Ricorda: l'anno prossimo le spese sono più alte.", startYear2);
+    };
+  }
+  function startYear2() {
+    s.year++; s.proj = 1; s.yearEarn = 0; s.used = new Set(); s.paid = false;
+    let notice = "";
+    if (s.deferred) { s.cash += s.deferred; s.yearEarn += s.deferred; notice = `💰 Arrivati ${eur(s.deferred)} di pagamenti in ritardo!`; s.deferred = 0; }
+    render();
+    offerScreen(notice);
+  }
+
+  function finalScreen(summary) {
+    const record = best === null || s.cash > best;
+    if (record) { best = s.cash; try { localStorage.setItem("revisione-best-v3", String(best)); } catch (e) {} }
+    sfx.fanfare(); confetti(record ? 160 : 70);
+    setModal(`<div class="stamp" style="color:var(--green)">${record ? "RECORD!" : "BILANCIO OK"}</div>
+      <h2>${record ? "🏆 Nuovo record!" : "Bilancio finale"}</h2>
+      <div class="big">${eur(s.cash)}</div>
+      <p>Utile dopo due anni di spese. ${verdict(s.cash)}${record ? "" : `<br>Il tuo record è ${eur(best)}.`}<br>
+      Reputazione finale: <b style="color:var(--gold)">${tierName(s.rep)}</b>${s.owned.size ? ` · Studio: ${[...s.owned].map(id => SHOP.find(x => x.id === id).ico).join(" ")}` : ""}</p>${summary}
+      <button class="btn b-main" id="mBtn">Gioca ancora</button>`);
+    $("mBtn").onclick = () => titleScreen();
+    render();
+  }
+  function verdict(n) {
+    if (n >= 15000) return "Agenzia leggendaria: i clienti fanno la fila.";
+    if (n >= 9000) return "Ottima carriera, lo studio cresce.";
+    if (n >= 4000) return "Carriera solida, bollette pagate.";
+    return "Ce l'hai fatta per un pelo.";
+  }
+
+  function titleScreen() {
+    const faces = shuffle(CLIENTS).slice(0, 3);
+    s = { phase: "title" };
+    setModal(`
+      <div class="title-faces">${faces.map((c, i) => `<div>${avatarSVG(c, [0, 2, 4][i])}</div>`).join("")}</div>
+      <h2>Ultima <span style="color:var(--red)">Revisione</span></h2>
+      <p>Sei un grafico freelance. Hai <span class="hl">due anni</span> per far quadrare i conti.</p>
+      <ul>
+        <li><b>Scegli</b> ogni incarico: chi paga di più ha meno pazienza.</li>
+        <li><b>Ritocco, revisione o rifaccio tutto</b>: più rischi, più guadagni (o peggiori).</li>
+        <li>Il rischio è <b>nascosto</b>: guarda la faccia del cliente. Un <b>☕ caffè</b> lo calma e ti mostra il rischio vero.</li>
+        <li>Rispetta la <b>scadenza</b>, o ti pagano metà.</li>
+        <li>Spese di fine anno: <b>${eur(COSTS[0])}</b>, poi <b>${eur(COSTS[1])}</b>. Tra un anno e l'altro, investi nel <b>negozio</b>.</li>
+      </ul>
+      ${best !== null ? `<p>Il tuo record: <b class="hl">${eur(best)}</b></p>` : ""}
+      <button class="btn b-main" id="mBtn">Apri lo studio</button>`, "title-screen");
+    $("mBtn").onclick = () => { if (soundOn) ctx()?.resume?.(); newGame(); };
+  }
+
+  /* =========================================================
+     UI
+     ========================================================= */
+  function setModal(html, cls = "") {
+    el.modal.className = "modal paper tape " + cls;
+    el.modal.innerHTML = html;
+    el.overlay.classList.add("show");
+    const f = el.modal.querySelector("#mBtn") || el.modal.querySelector("button:not(:disabled)");
+    f && f.focus({ preventScroll: true });
+  }
+  function hide() { el.overlay.classList.remove("show"); }
+
+  function say(kind, html) {
+    const b = document.createElement("div");
+    b.className = "bubble " + kind; b.innerHTML = html;
+    el.log.appendChild(b); el.log.scrollTop = el.log.scrollHeight;
+    if (kind.startsWith("client")) sfx.msg();
+  }
+
+  function render(skipCash) {
+    el.best.textContent = best === null ? "—" : eur(best);
+    if (!s || !s.c) return;
+    el.round.textContent = `${s.year} · ${s.proj}/${PER_YEAR}`;
+    if (!skipCash) el.cash.textContent = eur(s.cash);
+    el.cash.style.color = s.cash < 0 ? "var(--red)" : "";
+    const left = costFor(s.year) - s.cash;
+    el.costs.textContent = s.paid ? "pagate ✓" : left > 0 ? eur(left) : "coperte ✓";
+    el.costs.style.color = s.paid || left <= 0 ? "var(--green)" : "";
+    el.repTxt.textContent = tierName(s.rep);
+    el.repBar.style.width = s.rep + "%";
+
+    // ritratto + umore
+    const m = moodIdx();
+    if (m !== s.lastMood || el.frame.dataset.c !== s.c.name) {
+      el.frame.innerHTML = avatarSVG(s.c, m);
+      el.frame.dataset.c = s.c.name;
+      if (s.lastMood !== -1) { el.frame.classList.remove("change"); void el.frame.offsetWidth; el.frame.classList.add("change"); }
+      s.lastMood = m;
+    }
+    el.moodLbl.textContent = s.outcome === "ok" ? "soddisfatto!" : MOODS[m].lbl;
+    el.moodLbl.style.color = s.outcome === "ok" ? "var(--green)" : MOODS[m].col;
+
+    el.client.textContent = s.c.name;
+    el.job.textContent = s.c.job;
+    el.temper.textContent = s.c.temper;
+    el.rate.textContent = s.c.rate + " €/punto";
+    el.deadline.textContent = late() ? `⏰ scaduto: paga metà` : `⏰ ${s.n}/${s.c.max} revisioni`;
+    el.deadline.classList.toggle("late", late());
+
+    el.qTxt.textContent = s.quality;
+    el.qBar.style.width = Math.min(100, s.quality / 1.2) + "%";
+
+    const pct = t => Math.round(actionRisk(t) * 100) + "%";
+    if (s.over) el.riskLine.textContent = "";
+    else if (s.reveal) el.riskLine.innerHTML = `☕ Il cliente si confida. Rischio che molli: ritocco <b>${pct("rit")}</b> · revisione <b>${pct("rev")}</b> · rifaccio <b>${pct("ref")}</b>`;
+    else el.riskLine.innerHTML = `Rischio che molli: <b>?</b> Guarda la sua faccia${s.coffeeLeft > 0 ? ", o offrigli un caffè" : ""}.`;
+    if (s.half && !s.over) el.riskLine.innerHTML += `<br>☕ La prossima revisione vale la metà.`;
+
+    const v = value();
+    el.fee.textContent = eur(Math.max(0, v - s.advance));
+    el.feeNote.textContent = s.advance && !s.over ? `(+ ${eur(s.advance)} di acconto già incassato)` : late() && !s.over ? "(dimezzato dalla scadenza)" : "";
+    el.loss.textContent = s.quality ? "−" + eur(Math.max(0, v - s.advance)) : "—";
+
+    const perks = [...s.owned].map(id => { const it = SHOP.find(x => x.id === id); return it.ico + " " + it.name; });
+    if (s.advance) perks.push("💶 Acconto " + eur(s.advance));
+    el.perks.innerHTML = perks.map(t => `<span class="perk">${t}</span>`).join("");
+
+    const off = s.over || s.phase !== "play";
+    [el.ritBtn, el.revBtn, el.refBtn, el.shipBtn].forEach(b => b.disabled = off);
+    el.coffeeBtn.disabled = off || s.coffeeLeft <= 0;
+    el.advBtn.disabled = off || !!s.advance;
+    el.coffeeBtn.querySelector("small").textContent = s.coffeeLeft > 1 ? "ne hai 2 · calma e svela il rischio" : "calma e svela il rischio";
+  }
+
+  el.ritBtn.addEventListener("click", () => act("rit"));
+  el.revBtn.addEventListener("click", () => act("rev"));
+  el.refBtn.addEventListener("click", () => act("ref"));
+  el.shipBtn.addEventListener("click", deliver);
+  el.coffeeBtn.addEventListener("click", coffee);
+  el.advBtn.addEventListener("click", advance);
+
+  document.addEventListener("keydown", e => {
+    if (e.repeat) { if (e.key === " ") e.preventDefault(); return; }
+    if (el.overlay.classList.contains("show")) {
+      if (s && s.phase === "offer" && ["1", "2", "3"].includes(e.key)) { e.preventDefault(); chooseOffer(+e.key - 1); }
+      return;
+    }
+    if (!s || s.phase !== "play") return;
+    const k = e.key.toLowerCase();
+    if (k === "1") act("rit");
+    else if (k === "2") act("rev");
+    else if (k === "3") act("ref");
+    else if (k === "c") deliver();
+    else if (k === "b") coffee();
+    else if (k === "a") advance();
+    else if (k === " ") e.preventDefault();
+  });
+
+  // sfondo prima della partita
+  s = { phase: "title", c: CLIENTS[0], year: 1, proj: 1, cash: 0, rep: 0, quality: 10, heat: 0, n: 0, mod: 0, over: true,
+        advance: 0, owned: new Set(), coffeeLeft: 1, noise: 0, lastMood: -1, outcome: "ok" };
+  render();
+  titleScreen();
+})();
+</script>
+</body>
+</html>
